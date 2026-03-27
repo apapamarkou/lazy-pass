@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# pass-ui — lazy-pass entrypoint
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="$(cd "$SCRIPT_DIR/../lib" && pwd)"
+export LAZY_PASS_LIB="$LIB_DIR"
+export DISPLAY="${DISPLAY:-}"
+export XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}"
+
+# shellcheck source=../lib/utils.sh
+source "$LIB_DIR/utils.sh"
+# shellcheck source=../lib/validation.sh
+source "$LIB_DIR/validation.sh"
+# shellcheck source=../lib/backend.sh
+source "$LIB_DIR/backend.sh"
+# shellcheck source=../lib/ui.sh
+source "$LIB_DIR/ui.sh"
+
+# ── dependency check ──────────────────────────────────────────────────────────
+
+_check_deps() {
+  local missing=()
+  for cmd in pass fzf gpg git; do
+    command -v "$cmd" &>/dev/null || missing+=("$cmd")
+  done
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    log_error "Missing required tools: ${missing[*]}"
+    echo "Run install to install dependencies."
+    exit 1
+  fi
+}
+
+_check_pass_init() {
+  if ! backend_is_initialized; then
+    log_warn "pass store is not initialized."
+    echo "To initialize, run:"
+    echo "  gpg --gen-key"
+    echo "  pass init <your-gpg-id>"
+    exit 1
+  fi
+}
+
+# ── main ──────────────────────────────────────────────────────────────────────
+
+main() {
+  _check_deps
+
+  # Forward any arguments directly to pass
+  if [[ $# -gt 0 ]]; then
+    exec pass "$@"
+  fi
+
+  _check_pass_init
+  backend_warm_cache
+  ui_main
+}
+
+main "$@"

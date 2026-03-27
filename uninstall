@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# uninstall — remove lazy-pass
+set -euo pipefail
+
+INSTALL_DIR="$HOME/.local/share/lazy-pass"
+SYMLINK="$HOME/.local/bin/passwords"
+PASS_STORE="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+REPO_URL="https://github.com/YOUR_USERNAME/lazy-pass"
+
+_remove() {
+  local target="$1"
+  if [[ -e "$target" || -L "$target" ]]; then
+    rm -rf "$target"
+    echo "Removed: $target"
+  fi
+}
+
+_fetch_uninstall() {
+  # Piped from curl — download and re-exec the uninstall script with a TTY
+  echo "Downloading uninstall script..."
+  local tmp
+  tmp="$(mktemp)"
+  curl -fsSL "${REPO_URL}/raw/main/uninstall" -o "$tmp"
+  chmod +x "$tmp"
+  bash "$tmp"
+  rm -f "$tmp"
+}
+
+main() {
+  # When piped from curl, BASH_SOURCE[0] is "bash" — re-fetch as a real file
+  if [[ "${BASH_SOURCE[0]:-}" == "bash" || -z "${BASH_SOURCE[0]:-}" ]]; then
+    _fetch_uninstall
+    return
+  fi
+
+  echo "=== lazy-pass uninstaller ==="
+
+  read -r -n1 -p "Remove lazy-pass installation? [Y/n] " r; echo
+  [[ "${r,,}" == "n" ]] && { echo "Aborted."; exit 0; }
+
+  _remove "$SYMLINK"
+  _remove "$INSTALL_DIR"
+
+  echo ""
+  read -r -n1 -p "Also delete password store ($PASS_STORE)? [y/N] " r; echo
+  if [[ "${r,,}" == "y" ]]; then
+    read -r -n1 -p "Are you SURE? This is irreversible. [y/N] " confirm; echo
+    if [[ "${confirm,,}" == "y" ]]; then
+      _remove "$PASS_STORE"
+    else
+      echo "Password store kept."
+    fi
+  fi
+
+  echo "Uninstall complete."
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then main "$@"; fi

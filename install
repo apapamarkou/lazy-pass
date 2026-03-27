@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# install — install lazy-pass
+set -euo pipefail
+
+INSTALL_DIR="$HOME/.local/share/lazy-pass"
+BIN_DIR="$HOME/.local/bin"
+SYMLINK="$BIN_DIR/passwords"
+REPO_URL="https://github.com/YOUR_USERNAME/lazy-pass"
+
+# ── OS detection & package install ───────────────────────────────────────────
+
+_os() {
+  case "$(uname -s)" in
+    Darwin) echo "macos" ;;
+    Linux)
+      [[ -f /etc/os-release ]] && { # shellcheck source=/dev/null
+        source /etc/os-release; echo "${ID:-linux}"; } || echo "linux"
+      ;;
+    *) echo "unknown" ;;
+  esac
+}
+
+_install_deps_linux() {
+  local os="$1"
+  local pkgs=(pass fzf gpg git)
+  case "$os" in
+    fedora)       sudo dnf install -y "${pkgs[@]}" xclip ;;
+    opensuse*)    sudo zypper install -y "${pkgs[@]}" xclip ;;
+    ubuntu|debian) sudo apt-get install -y "${pkgs[@]}" xclip ;;
+    arch|manjaro) sudo pacman -S --noconfirm "${pkgs[@]}" xclip ;;
+    *)            echo "Unsupported distro. Install manually: ${pkgs[*]}"; return 1 ;;
+  esac
+}
+
+_install_deps_macos() {
+  if ! command -v brew &>/dev/null; then
+    echo "Homebrew not found."
+    read -r -n1 -p "Install Homebrew? [Y/n] " r; echo
+    [[ "${r,,}" == "n" ]] && { echo "Aborted."; exit 1; }
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install)"
+  fi
+  brew install pass gnupg fzf git
+  "$(brew --prefix)/opt/fzf/install" --key-bindings --completion --no-update-rc
+  echo "Recommended: brew install pinentry-mac"
+}
+
+_check_and_install_deps() {
+  local missing=()
+  for cmd in pass fzf gpg git; do
+    command -v "$cmd" &>/dev/null || missing+=("$cmd")
+  done
+  [[ ${#missing[@]} -eq 0 ]] && return 0
+
+  echo "Missing dependencies: ${missing[*]}"
+  read -r -n1 -p "Install missing dependencies? [Y/n] " r; echo
+  [[ "${r,,}" == "n" ]] && { echo "Skipping dependency install."; return 0; }
+
+  local os
+  os="$(_os)"
+  case "$os" in
+    macos)  _install_deps_macos ;;
+    *)      _install_deps_linux "$os" ;;
+  esac
+}
+
+# ── pass initialization ───────────────────────────────────────────────────────
+
+_init_pass() {
+  if pass ls &>/dev/null; then return 0; fi
+
+  echo "pass store is not initialized."
+  read -r -n1 -p "Initialize now? [Y/n] " r; echo
+  [[ "${r,,}" == "n" ]] && return 0
+
+  echo "Available GPG keys:"
+  gpg --list-secret-keys --keyid-format LONG 2>/dev/null || true
+
+  read -re -p "Enter GPG key ID (or email): " gpg_id
+  [[ -z "$gpg_id" ]] && { echo "No GPG ID provided. Skipping."; return 0; }
+  pass init "$gpg_id"
+
+  read -r -n1 -p "Initialize git in password store? [Y/n] " g; echo
+  if [[ "${g,,}" != "n" ]]; then
+    cd ~/.password-store
+    git init
+    git add .
+    git commit -m "Initialize password store"
+    cd - >/dev/null
+  fi
+}
+
+# ── install ───────────────────────────────────────────────────────────────────
+
+_install_files() {
+  # Determine source directory (works both from clone and curl | bash)
+  local src_dir
+  if [[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]}" != "bash" ]]; then
+    src_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  else
+    # Piped from curl — clone the repo
+    echo "Cloning lazy-pass..."
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+    git clone --depth=1 "$REPO_URL" "$tmp_dir/lazy-pass"
+    src_dir="$tmp_dir/lazy-pass"
+  fi
+
+  mkdir -p "$INSTALL_DIR" "$BIN_DIR"
+  cp -r "$src_dir/bin" "$src_dir/lib" "$INSTALL_DIR/"
+  chmod +x "$INSTALL_DIR/bin/pass-ui"
+
+  ln -sf "$INSTALL_DIR/bin/pass-ui" "$SYMLINK"
+  echo "Installed to $INSTALL_DIR"
+  echo "Symlink: $SYMLINK -> $INSTALL_DIR/bin/pass-ui"
+}
+
+_check_path() {
+  if ! echo "$PATH" | tr ':' '\n' | grep -qx "$BIN_DIR"; then
+    echo ""
+    echo "WARNING: $BIN_DIR is not in your PATH."
+    echo "Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
+    echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+  fi
+}
+
+main() {
+  echo "=== lazy-pass installer ==="
+  _check_and_install_deps
+  _install_files
+  _init_pass
+  _check_path
+  echo ""
+  echo "Done! Run: passwords"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then main "$@"; fi
