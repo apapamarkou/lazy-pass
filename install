@@ -13,8 +13,11 @@ _os() {
   case "$(uname -s)" in
     Darwin) echo "macos" ;;
     Linux)
-      [[ -f /etc/os-release ]] && { # shellcheck source=/dev/null
-        source /etc/os-release; echo "${ID:-linux}"; } || echo "linux"
+      [[ -f /etc/os-release ]] && {
+        # shellcheck source=/dev/null
+        source /etc/os-release
+        echo "${ID:-linux}"
+      } || echo "linux"
       ;;
     *) echo "unknown" ;;
   esac
@@ -24,19 +27,26 @@ _install_deps_linux() {
   local os="$1"
   local pkgs=(pass fzf gpg git)
   case "$os" in
-    fedora)       sudo dnf install -y "${pkgs[@]}" xclip ;;
-    opensuse*)    sudo zypper install -y "${pkgs[@]}" xclip ;;
-    ubuntu|debian) sudo apt-get install -y "${pkgs[@]}" xclip ;;
-    arch|manjaro) sudo pacman -S --noconfirm "${pkgs[@]}" xclip ;;
-    *)            echo "Unsupported distro. Install manually: ${pkgs[*]}"; return 1 ;;
+    fedora) sudo dnf install -y "${pkgs[@]}" xclip ;;
+    opensuse*) sudo zypper install -y "${pkgs[@]}" xclip ;;
+    ubuntu | debian) sudo apt-get install -y "${pkgs[@]}" xclip ;;
+    arch | manjaro) sudo pacman -S --noconfirm "${pkgs[@]}" xclip ;;
+    *)
+      echo "Unsupported distro. Install manually: ${pkgs[*]}"
+      return 1
+      ;;
   esac
 }
 
 _install_deps_macos() {
   if ! command -v brew &>/dev/null; then
     echo "Homebrew not found."
-    read -r -n1 -p "Install Homebrew? [Y/n] " r; echo
-    [[ "${r,,}" == "n" ]] && { echo "Aborted."; exit 1; }
+    read -r -n1 -p "Install Homebrew? [Y/n] " r
+    echo
+    [[ "${r,,}" == "n" ]] && {
+      echo "Aborted."
+      exit 1
+    }
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install)"
   fi
   brew install pass gnupg fzf git
@@ -52,14 +62,18 @@ _check_and_install_deps() {
   [[ ${#missing[@]} -eq 0 ]] && return 0
 
   echo "Missing dependencies: ${missing[*]}"
-  read -r -n1 -p "Install missing dependencies? [Y/n] " r; echo
-  [[ "${r,,}" == "n" ]] && { echo "Skipping dependency install."; return 0; }
+  read -r -n1 -p "Install missing dependencies? [Y/n] " r
+  echo
+  [[ "${r,,}" == "n" ]] && {
+    echo "Skipping dependency install."
+    return 0
+  }
 
   local os
   os="$(_os)"
   case "$os" in
-    macos)  _install_deps_macos ;;
-    *)      _install_deps_linux "$os" ;;
+    macos) _install_deps_macos ;;
+    *) _install_deps_linux "$os" ;;
   esac
 }
 
@@ -69,17 +83,22 @@ _init_pass() {
   if pass ls &>/dev/null; then return 0; fi
 
   echo "pass store is not initialized."
-  read -r -n1 -p "Initialize now? [Y/n] " r; echo
+  read -r -n1 -p "Initialize now? [Y/n] " r
+  echo
   [[ "${r,,}" == "n" ]] && return 0
 
   echo "Available GPG keys:"
   gpg --list-secret-keys --keyid-format LONG 2>/dev/null || true
 
   read -re -p "Enter GPG key ID (or email): " gpg_id
-  [[ -z "$gpg_id" ]] && { echo "No GPG ID provided. Skipping."; return 0; }
+  [[ -z "$gpg_id" ]] && {
+    echo "No GPG ID provided. Skipping."
+    return 0
+  }
   pass init "$gpg_id"
 
-  read -r -n1 -p "Initialize git in password store? [Y/n] " g; echo
+  read -r -n1 -p "Initialize git in password store? [Y/n] " g
+  echo
   if [[ "${g,,}" != "n" ]]; then
     cd ~/.password-store
     git init

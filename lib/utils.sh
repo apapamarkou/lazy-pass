@@ -9,11 +9,11 @@ detect_os() {
         # shellcheck source=/dev/null
         source /etc/os-release
         case "${ID:-}" in
-          fedora)           echo "fedora" ;;
-          opensuse*|sles)   echo "opensuse" ;;
-          ubuntu|debian)    echo "debian" ;;
-          arch|manjaro)     echo "arch" ;;
-          *)                echo "linux" ;;
+          fedora) echo "fedora" ;;
+          opensuse* | sles) echo "opensuse" ;;
+          ubuntu | debian) echo "debian" ;;
+          arch | manjaro) echo "arch" ;;
+          *) echo "linux" ;;
         esac
       else
         echo "linux"
@@ -53,8 +53,8 @@ generate_password() {
   printf '%s' "$pw"
 }
 
-log_info()  { printf '\033[0;32m[INFO]\033[0m  %s\n' "$*" >&2; }
-log_warn()  { printf '\033[0;33m[WARN]\033[0m  %s\n' "$*" >&2; }
+log_info() { printf '\033[0;32m[INFO]\033[0m  %s\n' "$*" >&2; }
+log_warn() { printf '\033[0;33m[WARN]\033[0m  %s\n' "$*" >&2; }
 log_error() { printf '\033[0;31m[ERROR]\033[0m %s\n' "$*" >&2; }
 
 # Secure temp file — auto-cleaned on EXIT

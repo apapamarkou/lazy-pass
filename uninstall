@@ -35,16 +35,22 @@ main() {
 
   echo "=== lazy-pass uninstaller ==="
 
-  read -r -n1 -p "Remove lazy-pass installation? [Y/n] " r; echo
-  [[ "${r,,}" == "n" ]] && { echo "Aborted."; exit 0; }
+  read -r -n1 -p "Remove lazy-pass installation? [Y/n] " r
+  echo
+  [[ "${r,,}" == "n" ]] && {
+    echo "Aborted."
+    exit 0
+  }
 
   _remove "$SYMLINK"
   _remove "$INSTALL_DIR"
 
   echo ""
-  read -r -n1 -p "Also delete password store ($PASS_STORE)? [y/N] " r; echo
+  read -r -n1 -p "Also delete password store ($PASS_STORE)? [y/N] " r
+  echo
   if [[ "${r,,}" == "y" ]]; then
-    read -r -n1 -p "Are you SURE? This is irreversible. [y/N] " confirm; echo
+    read -r -n1 -p "Are you SURE? This is irreversible. [y/N] " confirm
+    echo
     if [[ "${confirm,,}" == "y" ]]; then
       _remove "$PASS_STORE"
     else

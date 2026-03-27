@@ -4,9 +4,9 @@
 
 _fzf_base() {
   fzf --layout=reverse \
-      --ansi \
-      --no-mouse \
-      "$@"
+    --ansi \
+    --no-mouse \
+    "$@"
 }
 
 # ── main screen ───────────────────────────────────────────────────────────────
@@ -23,8 +23,8 @@ ui_main() {
 
     local selection
     selection="$(
-      echo "$entries" \
-      | _fzf_base \
+      echo "$entries" |
+        _fzf_base \
           --header-first \
           --header="$(printf 'Passwords\n%s' "$subtitle")" \
           --preview="$preview_cmd" \
@@ -36,7 +36,7 @@ ui_main() {
           --bind="ctrl-b:execute(bash ${LAZY_PASS_LIB}/copy-field.sh {} username >/dev/null)" \
           --bind="ctrl-p:execute(bash ${LAZY_PASS_LIB}/copy-field.sh {} password >/dev/null)" \
           --expect='enter' \
-      2>/dev/null
+          2>/dev/null
     )" || return 0
 
     local key entry
@@ -59,13 +59,15 @@ ui_new_entry() {
     echo "Name is required."
   done
 
-  read -r -n1 -p "Auto-generate password? [Y/n] " autogen; echo
+  read -r -n1 -p "Auto-generate password? [Y/n] " autogen
+  echo
   if [[ "${autogen,,}" != "n" ]]; then
     password="$(generate_password 20)"
     echo "Generated password: $password"
   else
     while true; do
-      read -res -p "Password: " password; echo
+      read -res -p "Password: " password
+      echo
       err="$(validate_password "$password" 2>&1)" && break
       echo "$err"
     done
@@ -96,8 +98,12 @@ ui_new_entry() {
   echo
   printf 'Entry   : %s\nUsername: %s\nURL     : %s\nEmail   : %s\nOTP     : %s\nNotes   : %s\n' \
     "$name" "$username" "$url" "$email" "$otp" "$notes"
-  read -r -n1 -p "Save? [Y/n] " confirm_save; echo
-  [[ "${confirm_save,,}" == "n" ]] && { echo "Aborted."; return; }
+  read -r -n1 -p "Save? [Y/n] " confirm_save
+  echo
+  [[ "${confirm_save,,}" == "n" ]] && {
+    echo "Aborted."
+    return
+  }
 
   local content
   content="$(backend_build_entry "$password" "$username" "$url" "$email" "$otp" "$notes")"
@@ -109,7 +115,10 @@ ui_new_entry() {
 ui_edit_entry() {
   local name="$1"
   local content
-  content="$(backend_show "$name")" || { log_error "Cannot decrypt '$name'"; return 1; }
+  content="$(backend_show "$name")" || {
+    log_error "Cannot decrypt '$name'"
+    return 1
+  }
 
   local pw username url email otp notes err
   pw="$(backend_parse_field "$content" password)"
@@ -122,26 +131,29 @@ ui_edit_entry() {
   while true; do
     local field
     field="$(
-      printf 'password\nusername\nurl\nemail\notp\nnotes' \
-      | _fzf_base \
+      printf 'password\nusername\nurl\nemail\notp\nnotes' |
+        _fzf_base \
           --header-first \
           --header="$(printf 'Edit: %s\n^Q/ESC to return' "$name")" \
           --preview="bash ${LAZY_PASS_LIB}/preview-field.sh {} $(printf '%q' "$pw") $(printf '%q' "$username") $(printf '%q' "$url") $(printf '%q' "$email") $(printf '%q' "$otp") $(printf '%q' "$notes")" \
           --bind='ctrl-q:abort' \
           --bind='esc:abort' \
-      2>/dev/null
+          2>/dev/null
     )" || break
 
     clear
     case "$field" in
       password)
         printf 'password for %s:\n' "$name"
-        read -r -n1 -p "Auto-generate? [Y/n] " ag; echo
+        read -r -n1 -p "Auto-generate? [Y/n] " ag
+        echo
         if [[ "${ag,,}" != "n" ]]; then
-          pw="$(generate_password 20)"; echo "New password: $pw"
+          pw="$(generate_password 20)"
+          echo "New password: $pw"
         else
           while true; do
-            read -res -p "New password: " pw; echo
+            read -res -p "New password: " pw
+            echo
             err="$(validate_password "$pw" 2>&1)" && break
             echo "$err"
           done

@@ -4,9 +4,9 @@
 # List all pass entries as full paths (e.g. mail/gmail/user@example.com)
 backend_list() {
   local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
-  find "$store" -name '*.gpg' 2>/dev/null \
-    | sed "s|${store}/||;s|\.gpg$||" \
-    | sort
+  find "$store" -name '*.gpg' 2>/dev/null |
+    sed "s|${store}/||;s|\.gpg$||" |
+    sort
 }
 
 # Warm the GPG agent cache by decrypting one entry in the foreground terminal.
@@ -36,7 +36,7 @@ backend_parse_field() {
   local field="$2"
   case "$field" in
     password) echo "$content" | head -n1 ;;
-    *)        echo "$content" | grep -i "^${field}:" | head -n1 | cut -d' ' -f2- ;;
+    *) echo "$content" | grep -i "^${field}:" | head -n1 | cut -d' ' -f2- ;;
   esac
 }
 
