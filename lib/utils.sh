@@ -50,7 +50,7 @@ generate_password() {
   local chars='A-Za-z0-9!@#$%^&*()-_=+[]{}|;:,.<>?'
   local pw
   pw="$(LC_ALL=C tr -dc "$chars" </dev/urandom | head -c "$length")"
-  echo "$pw"
+  printf '%s' "$pw"
 }
 
 log_info()  { printf '\033[0;32m[INFO]\033[0m  %s\n' "$*" >&2; }

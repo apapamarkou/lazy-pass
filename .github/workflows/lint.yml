@@ -23,8 +23,10 @@ jobs:
 
       - name: Install shfmt
         run: |
-          curl -sSfL https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.8.0_linux_amd64 \
-            -o /usr/local/bin/shfmt
+          SHFMT_URL=$(curl -sSf https://api.github.com/repos/mvdan/sh/releases/latest \
+            | grep -o 'https://github.com/mvdan/sh/releases/download/[^"]*shfmt_v[^"]*_linux_amd64"' \
+            | tr -d '"')
+          curl -sSfL "$SHFMT_URL" -o /usr/local/bin/shfmt
           chmod +x /usr/local/bin/shfmt
 
       - name: Check formatting
