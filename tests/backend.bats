@@ -52,11 +52,13 @@ setup() { load_lib; }
 # ── generate_password ─────────────────────────────────────────────────────────
 
 @test "generate_password: default length 20" {
-  run generate_password
-  [ "${#output}" -eq 20 ]
+  load_lib
+  pw="$(generate_password)"
+  [ "${#pw}" -eq 20 ]
 }
 
 @test "generate_password: custom length" {
-  run generate_password 32
-  [ "${#output}" -eq 32 ]
+  load_lib
+  pw="$(generate_password 32)"
+  [ "${#pw}" -eq 32 ]
 }
