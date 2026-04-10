@@ -145,18 +145,29 @@ ui_edit_entry() {
     case "$field" in
       password)
         printf 'password for %s:\n' "$name"
-        read -r -n1 -p "Auto-generate? [Y/n] " ag
+        read -r -n1 -p "Auto-generate? [Y/n] (empty = cancel) " ag
         echo
         if [[ "${ag,,}" != "n" ]]; then
           pw="$(generate_password 20)"
           echo "New password: $pw"
         else
+          read -res -p "New password (empty to cancel): " pw
+          echo
+          if [[ -z "$pw" ]]; then
+            echo "Cancelled. Returning to edit menu."
+            continue
+          fi
           while true; do
-            read -res -p "New password: " pw
-            echo
             err="$(validate_password "$pw" 2>&1)" && break
             echo "$err"
+            read -res -p "New password (empty to cancel): " pw
+            echo
+            if [[ -z "$pw" ]]; then
+              echo "Cancelled. Returning to edit menu."
+              break
+            fi
           done
+          [[ -z "$pw" ]] && continue
         fi
         ;;
       username)
