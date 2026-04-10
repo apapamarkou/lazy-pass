@@ -111,10 +111,12 @@ _init_pass() {
 # ── install ───────────────────────────────────────────────────────────────────
 
 _install_files() {
-  # Determine source directory (works both from clone and curl | bash)
   local src_dir
-  if [[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]:-}" != "bash" ]]; then
-    src_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
+  local bash_source
+  (set +u; bash_source="${BASH_SOURCE[0]:-}")
+  bash_source="$(set +u; printf '%s' "${BASH_SOURCE[0]:-}")"
+  if [[ -n "$bash_source" && "$bash_source" != "bash" ]]; then
+    src_dir="$(cd "$(dirname "$bash_source")" && pwd)"
   else
     # Piped from curl — clone the repo
     echo "Cloning lazy-pass..."
@@ -152,4 +154,4 @@ main() {
   echo "Done! Run: passwords"
 }
 
-if [[ "${BASH_SOURCE[0]:-}" == "$0" || -z "${BASH_SOURCE[0]:-}" ]]; then main "$@"; fi
+if (set +u; [[ "${BASH_SOURCE[0]:-}" == "$0" || -z "${BASH_SOURCE[0]:-}" ]]); then main "$@"; fi

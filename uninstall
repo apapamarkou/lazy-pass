@@ -61,4 +61,4 @@ main() {
   echo "Uninstall complete."
 }
 
-if [[ "${BASH_SOURCE[0]:-}" == "$0" || -z "${BASH_SOURCE[0]:-}" ]]; then main "$@"; fi
+if (set +u; [[ "${BASH_SOURCE[0]:-}" == "$0" || -z "${BASH_SOURCE[0]:-}" ]]); then main "$@"; fi
