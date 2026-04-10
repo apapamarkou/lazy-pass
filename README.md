@@ -15,13 +15,7 @@ A modular, interactive terminal UI for [`pass`](https://www.passwordstore.org/) 
 ## Installation
 
 ```bash
-bash install
-```
-
-Or via curl (replace with your raw URL):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/lazy-pass/main/install | bash
+curl -fsSL https://raw.githubusercontent.com/apapamarkou/lazy-pass/main/install | bash
 ```
 
 Installs to:
