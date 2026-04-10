@@ -5,7 +5,7 @@ set -euo pipefail
 INSTALL_DIR="$HOME/.local/share/lazy-pass"
 SYMLINK="$HOME/.local/bin/passwords"
 PASS_STORE="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
-REPO_URL="https://github.com/YOUR_USERNAME/lazy-pass"
+REPO_URL="https://github.com/apapamarkou/lazy-pass"
 
 _remove() {
   local target="$1"

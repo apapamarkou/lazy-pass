@@ -5,7 +5,7 @@ set -euo pipefail
 INSTALL_DIR="$HOME/.local/share/lazy-pass"
 BIN_DIR="$HOME/.local/bin"
 SYMLINK="$BIN_DIR/passwords"
-REPO_URL="https://github.com/YOUR_USERNAME/lazy-pass"
+REPO_URL="https://github.com/apapamarkou/lazy-pass"
 
 # ── OS detection & package install ───────────────────────────────────────────
 
