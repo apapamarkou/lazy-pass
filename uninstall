@@ -27,7 +27,10 @@ _fetch_uninstall() {
 }
 
 main() {
-  local self="${BASH_SOURCE[0]-}"
+  local self
+  set +u
+  self="${BASH_SOURCE[0]-}"
+  set -u
   if [[ -z "$self" || "$self" == "bash" ]]; then
     _fetch_uninstall
     return
@@ -61,6 +64,7 @@ main() {
   echo "Uninstall complete."
 }
 
+set +u
 self="${BASH_SOURCE[0]-}"
 if [[ "$self" == "$0" || -z "$self" ]]; then
   main "$@"

@@ -112,8 +112,10 @@ _init_pass() {
 
 _install_files() {
   local src_dir
-  # BASH_SOURCE is unset when piped via curl|bash
-  local self="${BASH_SOURCE[0]-}"
+  local self
+  set +u
+  self="${BASH_SOURCE[0]-}"
+  set -u
   if [[ -n "$self" && "$self" != "bash" ]]; then
     src_dir="$(cd "$(dirname "$self")" && pwd)"
   else
@@ -152,9 +154,7 @@ main() {
   echo "Done! Run: passwords"
 }
 
-# Run when executed directly or piped via curl|bash
-# BASH_SOURCE[0] is unset or empty when piped — use parameter default syntax
-# -u is intentionally omitted from set flags above to allow this safely
+set +u
 self="${BASH_SOURCE[0]-}"
 if [[ "$self" == "$0" || -z "$self" ]]; then
   main "$@"
