@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install — install lazy-pass
-set -euo pipefail
+set -eo pipefail
 
 INSTALL_DIR="$HOME/.local/share/lazy-pass"
 BIN_DIR="$HOME/.local/bin"
@@ -112,13 +112,11 @@ _init_pass() {
 
 _install_files() {
   local src_dir
-  local bash_source
-  (set +u; bash_source="${BASH_SOURCE[0]:-}")
-  bash_source="$(set +u; printf '%s' "${BASH_SOURCE[0]:-}")"
-  if [[ -n "$bash_source" && "$bash_source" != "bash" ]]; then
-    src_dir="$(cd "$(dirname "$bash_source")" && pwd)"
+  # BASH_SOURCE is unset when piped via curl|bash
+  local self="${BASH_SOURCE[0]-}"
+  if [[ -n "$self" && "$self" != "bash" ]]; then
+    src_dir="$(cd "$(dirname "$self")" && pwd)"
   else
-    # Piped from curl — clone the repo
     echo "Cloning lazy-pass..."
     local tmp_dir
     tmp_dir="$(mktemp -d)"
@@ -154,4 +152,10 @@ main() {
   echo "Done! Run: passwords"
 }
 
-if (set +u; [[ "${BASH_SOURCE[0]:-}" == "$0" || -z "${BASH_SOURCE[0]:-}" ]]); then main "$@"; fi
+# Run when executed directly or piped via curl|bash
+# BASH_SOURCE[0] is unset or empty when piped — use parameter default syntax
+# -u is intentionally omitted from set flags above to allow this safely
+self="${BASH_SOURCE[0]-}"
+if [[ "$self" == "$0" || -z "$self" ]]; then
+  main "$@"
+fi

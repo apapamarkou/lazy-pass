@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # uninstall — remove lazy-pass
-set -euo pipefail
+set -eo pipefail
 
 INSTALL_DIR="$HOME/.local/share/lazy-pass"
 SYMLINK="$HOME/.local/bin/passwords"
@@ -16,7 +16,7 @@ _remove() {
 }
 
 _fetch_uninstall() {
-  # Piped from curl — download and re-exec the uninstall script with a TTY
+  # Piped from curl — download and re-exec with a real TTY
   echo "Downloading uninstall script..."
   local tmp
   tmp="$(mktemp)"
@@ -27,8 +27,8 @@ _fetch_uninstall() {
 }
 
 main() {
-  # When piped from curl, BASH_SOURCE[0] is "bash" — re-fetch as a real file
-  if [[ "${BASH_SOURCE[0]:-}" == "bash" || -z "${BASH_SOURCE[0]:-}" ]]; then
+  local self="${BASH_SOURCE[0]-}"
+  if [[ -z "$self" || "$self" == "bash" ]]; then
     _fetch_uninstall
     return
   fi
@@ -61,4 +61,7 @@ main() {
   echo "Uninstall complete."
 }
 
-if (set +u; [[ "${BASH_SOURCE[0]:-}" == "$0" || -z "${BASH_SOURCE[0]:-}" ]]); then main "$@"; fi
+self="${BASH_SOURCE[0]-}"
+if [[ "$self" == "$0" || -z "$self" ]]; then
+  main "$@"
+fi
