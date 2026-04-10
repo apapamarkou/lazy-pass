@@ -56,7 +56,7 @@ bash uninstall
 Or via curl:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/lazy-pass/main/uninstall | bash
+curl -fsSL https://raw.githubusercontent.com/apapamarkou/lazy-pass/main/uninstall | bash
 ```
 
 ## Clipboard
