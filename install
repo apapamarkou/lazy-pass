@@ -113,8 +113,8 @@ _init_pass() {
 _install_files() {
   # Determine source directory (works both from clone and curl | bash)
   local src_dir
-  if [[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]}" != "bash" ]]; then
-    src_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]:-}" != "bash" ]]; then
+    src_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
   else
     # Piped from curl — clone the repo
     echo "Cloning lazy-pass..."
@@ -152,4 +152,4 @@ main() {
   echo "Done! Run: passwords"
 }
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then main "$@"; fi
+if [[ "${BASH_SOURCE[0]:-}" == "$0" || -z "${BASH_SOURCE[0]:-}" ]]; then main "$@"; fi
