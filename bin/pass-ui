@@ -2,7 +2,9 @@
 # pass-ui — lazy-pass entrypoint
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve the real path of this script, following symlinks
+_real_script="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$_real_script")" && pwd)"
 LIB_DIR="$(cd "$SCRIPT_DIR/../lib" && pwd)"
 export LAZY_PASS_LIB="$LIB_DIR"
 export DISPLAY="${DISPLAY:-}"
